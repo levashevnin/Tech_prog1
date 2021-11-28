@@ -5,10 +5,13 @@
 
 using namespace std;
 
+const int MAX_BECUP_COUNT = 5;
+
 void printMenu();
 void addObject(Keeper& keeper);
 void changeObject(Keeper& keeper);
-void deleteObject(Keeper& keeper);
+void deleteObject(Keeper& keeper, Marray<Base*>& becup);
+void recoverObject(Keeper& keeper, Marray<Base*>& becup);
 
 int main()
 {
@@ -16,6 +19,7 @@ int main()
 	SetConsoleOutputCP(1251);
 
 	Keeper keeper;
+	Marray<Base*> becup;
 
 	cout << "Ввести изначальные данные из файла?(1/0)" << endl;
 	int method = safeInput(0, 1);
@@ -33,7 +37,7 @@ int main()
 	bool isExit = false;
 	while (!isExit) {
 		printMenu();
-		method = safeInput(0, 5);
+		method = safeInput(0, 6);
 		switch (method)
 		{
 		case 1:
@@ -43,13 +47,16 @@ int main()
 			changeObject(keeper);
 			break;
 		case 3:
-			deleteObject(keeper);
+			deleteObject(keeper, becup);
 			break;
 		case 4:
 			keeper.printToConsole();
 			break;
 		case 5:
 			keeper.printToFile();
+			break;
+		case 6:
+			recoverObject(keeper, becup);
 			break;
 		case 0:
 			isExit = true;
@@ -64,6 +71,7 @@ void printMenu() {
 	cout << "3. Удалить объект" << endl;
 	cout << "4. Вывести данные на экран" << endl;
 	cout << "5. Сохранить в файл" << endl;
+	cout << "6. Восстановить последние удаленные элементы" << endl;
 	cout << "0. Выход" << endl;
 	cout << "Выберете пункт меню: ";
 }
@@ -100,7 +108,7 @@ void changeObject(Keeper& keeper)
 	}
 }
 
-void deleteObject(Keeper& keeper)
+void deleteObject(Keeper& keeper, Marray<Base*>& becup)
 {
 	if (keeper.getSize() == 0)
 		cout << "Грузоперевозчик пуст. Нечего удалять" << endl;
@@ -109,6 +117,26 @@ void deleteObject(Keeper& keeper)
 		keeper.printToConsole();
 		cout << "Выберете номер объекта для удаления: ";
 		int number = safeInput(1, keeper.getSize());
+		if (becup.getSize() == MAX_BECUP_COUNT)
+			becup.del(0);
+		becup.add(keeper[number - 1]);
 		keeper.del(number - 1);
+	}
+}
+
+void recoverObject(Keeper& keeper, Marray<Base*>& becup) {
+	if (becup.getSize() == 0)
+		cout << "Список недавно удаленных элементов пуст. Нечего восстанавливать" << endl;
+	else
+	{
+		cout << "Список объектов для восстановления: " << endl;
+		for (int i = 0; i < becup.getSize(); i++) {
+			cout << i + 1 << ". ";
+			becup[i]->printToConsole();
+		}
+		cout << "Выберете номер объекта для восстановления: ";
+		int number = safeInput(1, becup.getSize());
+		keeper.add(becup[number - 1]);
+		becup.del(number - 1);
 	}
 }
